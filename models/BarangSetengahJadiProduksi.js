@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 0,  // Default value adalah 0
     },
+  },
+  {
+    tableName: "barangsetengahjadiproduksis",
+    freezeTableName: true,
   });
 
   BarangSetengahJadiProduksi.associate = function(models) {

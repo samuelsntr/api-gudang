@@ -14,7 +14,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,  // Kolom ini boleh kosong
     }
-  });
+  },
+  {
+    tableName: "suppliers",
+    freezeTableName: true,
+  }
+  );
 
   // Relasi dengan model lain bisa didefinisikan di sini
   Supplier.associate = function(models) {

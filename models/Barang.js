@@ -31,7 +31,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0,
     },
-  });
+  },
+  {
+    tableName: "barangs",
+    freezeTableName: true,
+  }
+);
 
   // Relasi dengan model lain bisa didefinisikan di sini
   Barang.associate = function(models) {

@@ -14,7 +14,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false, // Kolom ini tidak boleh kosong
     }
-  });
+  },
+  {
+    tableName: "barangsetengahjadidetails",
+    freezeTableName: true,
+  }
+);
 
   BarangSetengahJadiDetail.associate = function(models) {
     // Relasi ke produksi setengah jadi

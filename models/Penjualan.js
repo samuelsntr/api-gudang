@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: "lunas",
       allowNull: false,
     },
+  },
+  {
+    tableName: "penjualans",
+    freezeTableName: true,
   });
 
   Penjualan.associate = function (models) {

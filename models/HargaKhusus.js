@@ -6,6 +6,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false, // Harga wajib diisi
     }
+  },
+  {
+    tableName: "hargakhusus",
+    freezeTableName: true,
   });
 
   HargaKhusus.associate = function(models) {

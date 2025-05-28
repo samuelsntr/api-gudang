@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
     }
+  },
+  {
+    tableName: "penjualandetails",
+    freezeTableName: true,
   });
 
   PenjualanDetail.associate = function(models) {

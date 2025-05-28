@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true, // Opsional (bisa nomor WA / telepon)
     }
+  },
+  {
+    tableName: "konsumens",
+    freezeTableName: true,
   });
 
   Konsumen.associate = function(models) {

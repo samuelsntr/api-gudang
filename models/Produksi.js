@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false, // Kolom ini tidak boleh kosong
     }
+  },
+  {
+    tableName: "produksis",
+    freezeTableName: true,
   });
 
   // Relasi dengan model lain bisa didefinisikan di sini

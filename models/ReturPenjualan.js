@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+  },
+  {
+    tableName: "returpenjualans",
+    freezeTableName: true,
   });
 
   ReturPenjualan.associate = function (models) {

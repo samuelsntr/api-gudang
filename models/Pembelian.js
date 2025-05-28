@@ -10,6 +10,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,  // Kolom ini tidak boleh kosong
     }
+  },
+  {
+    tableName: "pembelians",
+    freezeTableName: true,
   });
 
   // Relasi dengan model lain bisa didefinisikan di sini
