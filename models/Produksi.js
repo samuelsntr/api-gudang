@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false, // Kolom ini tidak boleh kosong
     },
     qty_hasil: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: false, // Kolom ini tidak boleh kosong
     }
   },

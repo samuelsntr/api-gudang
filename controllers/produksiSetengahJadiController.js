@@ -35,7 +35,7 @@ exports.create = async (req, res) => {
       tanggal: tanggal || new Date(), // fallback tanggal hari ini
       keterangan,
       total_hpp,
-      qty_hasil // ✅ ditambahkan
+      qty_hasil: parseFloat(qty_hasil) // Pastikan qty_hasil dalam format desimal
     }, { transaction: t });
 
     // Simpan setiap bahan baku sebagai detail
@@ -43,36 +43,37 @@ exports.create = async (req, res) => {
       await BarangSetengahJadiDetail.create({
         produksi_id: produksi.id,
         barang_id: item.barangId,
-        qty: item.qty,
+        qty: parseFloat(item.qty), // Pastikan qty dalam format desimal
         harga: item.harga,
-        subtotal: item.qty * item.harga  // ✅ Tambahkan ini
+        subtotal: parseFloat(item.qty) * item.harga
       }, { transaction: t });
 
-      // Update stok barang
+      // Update stok barang bahan baku (dikurangi)
       const barang = await Barang.findByPk(item.barangId, { transaction: t });
       if (!barang) {
         throw new Error(`Barang ID ${item.barangId} tidak ditemukan`);
       }
 
-      if (barang.stok < item.qty) {
+      if (barang.stok < parseFloat(item.qty)) {
         throw new Error(`Stok tidak cukup untuk barang ${barang.nama}`);
       }
 
-      barang.stok -= item.qty;
+      barang.stok = parseFloat(barang.stok) - parseFloat(item.qty);
       await barang.save({ transaction: t });
     }
 
+    // Update stok barang setengah jadi (ditambah)
     const barangSetengahJadi = await Barang.findByPk(barang_setengah_jadi_id, { transaction: t });
     if (!barangSetengahJadi) {
       throw new Error('Barang setengah jadi tidak ditemukan');
     }
     
     // Simpan nilai lama
-    const stokLama = barangSetengahJadi.stok;
-    const hppLama = barangSetengahJadi.hpp || 0;
+    const stokLama = parseFloat(barangSetengahJadi.stok);
+    const hppLama = parseFloat(barangSetengahJadi.hpp || 0);
     
     // Hitung total qty dan total nilai
-    const totalQtyBaru = stokLama + qty_hasil;
+    const totalQtyBaru = stokLama + parseFloat(qty_hasil); // Stok bertambah sesuai qty_hasil
     const totalNilaiLama = hppLama * stokLama;
     const totalNilaiBaru = total_hpp;
     
@@ -80,19 +81,18 @@ exports.create = async (req, res) => {
       ? (totalNilaiLama + totalNilaiBaru) / totalQtyBaru
       : 0;
     
-    // Update barang
-    barangSetengahJadi.stok = totalQtyBaru;
+    // Update barang setengah jadi
+    barangSetengahJadi.stok = totalQtyBaru; // Stok bertambah sesuai qty_hasil
     barangSetengahJadi.hpp = parseFloat(hppBaru.toFixed(2));
     
     await barangSetengahJadi.save({ transaction: t });
-    
 
     await t.commit();
     return res.status(201).json({
       message: 'Produksi berhasil disimpan',
       produksi_id: produksi.id,
       barang_id: barangSetengahJadi.id,
-      qty_hasil,
+      qty_hasil: parseFloat(qty_hasil),
       hpp_per_unit: barangSetengahJadi.hpp
     });
 
@@ -105,7 +105,6 @@ exports.create = async (req, res) => {
     });
   }
 };
-
 
 // Get all produksi setengah jadi
 exports.getAll = async (req, res) => {
@@ -187,14 +186,18 @@ exports.delete = async (req, res) => {
     // Rollback stok bahan baku
     for (const detail of produksi.ProduksiSetengahJadiDetails) {
       const barang = await Barang.findByPk(detail.barang_id, { transaction: t });
-      barang.stok += detail.qty;
-      await barang.save({ transaction: t });
+      if (barang) {
+        barang.stok = Number(barang.stok) + Number(detail.qty);
+        await barang.save({ transaction: t });
+      }
     }
 
     // Rollback stok barang setengah jadi
     const barangSetengahJadi = await Barang.findByPk(produksi.barang_id, { transaction: t });
-    barangSetengahJadi.stok -= produksi.qty_hasil;
-    await barangSetengahJadi.save({ transaction: t });
+    if (barangSetengahJadi) {
+      barangSetengahJadi.stok = Number(barangSetengahJadi.stok) - Number(produksi.qty_hasil);
+      await barangSetengahJadi.save({ transaction: t });
+    }
 
     // Hapus detail dan produksi
     await BarangSetengahJadiDetail.destroy({

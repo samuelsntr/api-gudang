@@ -105,7 +105,7 @@ exports.createProduksi = async (req, res) => {
       keterangan,
       total_hpp: totalHPP,
       barang_jadi_id,
-      qty_hasil
+      qty_hasil: parseFloat(qty_hasil)
     }, { transaction: t });
 
     // Simpan detail bahan dan kurangi stok
@@ -113,7 +113,7 @@ exports.createProduksi = async (req, res) => {
       const barang = await Barang.findByPk(parseInt(bahan.barangId), { transaction: t });
 
       // Kurangi stok
-      barang.stok -= bahan.qty;
+      barang.stok = Number(barang.stok) - Number(bahan.qty);
       await barang.save({ transaction: t });
 
       // Simpan detail produksi
@@ -133,7 +133,8 @@ exports.createProduksi = async (req, res) => {
     }
 
     const hppPerUnit = qty_hasil > 0 ? totalHPP / qty_hasil : 0;
-    barangJadi.stok += qty_hasil;
+    // Pastikan qty_hasil dikonversi ke number dan ditambahkan ke stok
+    barangJadi.stok = Number(barangJadi.stok) + Number(qty_hasil);
     barangJadi.hpp = parseFloat(hppPerUnit.toFixed(2)); // Simpan HPP
     await barangJadi.save({ transaction: t });
 
@@ -172,24 +173,32 @@ exports.deleteProduksi = async (req, res) => {
     // Rollback stok bahan baku
     for (const detail of produksi.ProduksiDetails) {
       const barang = await Barang.findByPk(detail.barangId, { transaction: t });
-      barang.stok += detail.qty;
-      await barang.save({ transaction: t });
+      if (barang) {
+        barang.stok = Number(barang.stok) + Number(detail.qty);
+        await barang.save({ transaction: t });
+      }
     }
 
     // Rollback stok barang jadi
     const barangJadi = await Barang.findByPk(produksi.barang_jadi_id, { transaction: t });
-    barangJadi.stok -= produksi.qty_hasil;
-    await barangJadi.save({ transaction: t });
+    if (barangJadi) {
+      barangJadi.stok = Number(barangJadi.stok) - Number(produksi.qty_hasil);
+      await barangJadi.save({ transaction: t });
+    }
 
     // Hapus data produksi
     await ProduksiDetail.destroy({ where: { produksiId: produksi.id }, transaction: t });
     await produksi.destroy({ transaction: t });
 
     await t.commit();
-    res.json({ message: 'Produksi berhasil dihapus' });
+    res.json({ message: 'Produksi berhasil dihapus dan stok dikembalikan' });
 
   } catch (err) {
     await t.rollback();
-    res.status(500).json({ message: 'Gagal menghapus produksi', error: err.message });
+    console.error("Gagal menghapus produksi:", err.message);
+    res.status(500).json({
+      message: "Gagal menghapus produksi",
+      error: err.message,
+    });
   }
 };

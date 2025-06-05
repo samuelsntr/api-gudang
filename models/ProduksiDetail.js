@@ -3,7 +3,7 @@
 module.exports = (sequelize, DataTypes) => {
   const ProduksiDetail = sequelize.define('ProduksiDetail', {
     qty: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: false, // Kolom ini tidak boleh kosong
     },
     harga: {

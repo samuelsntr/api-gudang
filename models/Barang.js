@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,  // Kolom ini tidak boleh kosong
     },
     stok: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0,  // Default value adalah 0
     },
     harga_beli: {

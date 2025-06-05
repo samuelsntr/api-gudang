@@ -98,9 +98,10 @@ exports.createPembelian = async (req, res) => {
       const subtotal = harga * qty;
       totalPembelian += subtotal;
 
-      // Update stok barang
-      barang.stok += qty;
-      barang.harga_beli = harga; // ✅ Update harga beli terbaru
+      // Update stok barang - menambah stok sesuai qty yang dibeli
+      const stokBaru = Number(barang.stok) + Number(qty);
+      barang.stok = stokBaru;
+      barang.harga_beli = harga; // Update harga beli terbaru
       await barang.save({ transaction: t });
 
       // Tambahkan detail pembelian
@@ -145,7 +146,9 @@ exports.deletePembelian = async (req, res) => {
     for (const detail of pembelian.PembelianDetails) {
       const barang = await Barang.findByPk(detail.barangId, { transaction: t });
       if (barang) {
-        barang.stok -= detail.qty;
+        // Kurangi stok sesuai qty yang dihapus
+        const stokBaru = Number(barang.stok) - Number(detail.qty);
+        barang.stok = stokBaru;
         await barang.save({ transaction: t });
       }
     }
